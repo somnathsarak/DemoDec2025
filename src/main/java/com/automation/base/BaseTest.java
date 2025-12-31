@@ -4,36 +4,42 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.AfterTest;
 import java.time.Duration;
 import java.util.logging.Logger;
 
 /**
- * BaseTest Class - Base class for all test classes
+ * BaseTest Class - Base class for all test classes with ThreadLocal support
  * 
  * Purpose: Provides common setup and teardown methods for WebDriver initialization
- * and browser management across all test classes
+ * and browser management across all test classes with thread-safe operations
  * 
  * Features:
+ * - ThreadLocal WebDriver and WebDriverWait for parallel test execution
  * - WebDriver initialization based on browser type
  * - Implicit and explicit wait configuration
  * - Browser window management
  * - Teardown and resource cleanup
  * - Logging for test execution tracking
+ * - Thread-safe driver management
  * 
  * Usage: All test classes should extend this BaseTest class
  * 
  * Author: QA Automation Team
  * Created: December 2025
- * Updated for Jenkins CI/CD Integration
+ * Updated for Jenkins CI/CD Integration and Parallel Testing
  */
 public class BaseTest {
     // Logger for tracking test execution
     protected static final Logger logger = Logger.getLogger(BaseTest.class.getName());
     
-    // WebDriver instance - protected so child classes can access
-    protected WebDriver driver;
+    // ThreadLocal variables for thread-safe WebDriver and WebDriverWait management
+    // Enables parallel test execution without driver conflicts
+    private static ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
+    private static ThreadLocal<WebDriverWait> waitThreadLocal = new ThreadLocal<>();
     
     // Configuration constants
     private static final int IMPLICIT_WAIT = 10;
@@ -49,10 +55,12 @@ public class BaseTest {
      * 
      * Process:
      * 1. Initializes WebDriver based on configured browser type
-     * 2. Sets implicit wait for element discovery
-     * 3. Maximizes browser window
-     * 4. Sets page load timeout
-     * 5. Logs initialization status
+     * 2. Stores driver in ThreadLocal for thread-safe access
+     * 3. Initializes WebDriverWait in ThreadLocal
+     * 4. Sets implicit wait for element discovery
+     * 5. Maximizes browser window
+     * 6. Sets page load timeout
+     * 7. Logs initialization status
      */
     @BeforeTest
     public void setUp() {
@@ -61,7 +69,14 @@ public class BaseTest {
         try {
             // Initialize WebDriver based on browser type
             String browserName = getBrowserName();
-            driver = initializeBrowser(browserName);
+            WebDriver driver = initializeBrowser(browserName);
+            
+            // Store driver in ThreadLocal for thread-safe access
+            driverThreadLocal.set(driver);
+            
+            // Initialize WebDriverWait and store in ThreadLocal
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(EXPLICIT_WAIT));
+            waitThreadLocal.set(wait);
             
             // Configure implicit waits
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(IMPLICIT_WAIT));
@@ -71,6 +86,7 @@ public class BaseTest {
             driver.manage().window().maximize();
             
             logger.info("WebDriver initialized successfully with browser: " + browserName);
+            logger.info("WebDriver stored in ThreadLocal: " + Thread.currentThread().getName());
             logger.info("========== Test Setup Completed ==========");
             
         } catch (Exception e) {
@@ -99,19 +115,19 @@ public class BaseTest {
                 webDriver = new ChromeDriver();
                 logger.info("Chrome WebDriver initialized");
                 break;
-                
+            
             case "firefox":
                 // Initialize Firefox WebDriver
                 webDriver = new FirefoxDriver();
                 logger.info("Firefox WebDriver initialized");
                 break;
-                
+            
             case "edge":
                 // Initialize Edge WebDriver
                 webDriver = new EdgeDriver();
                 logger.info("Edge WebDriver initialized");
                 break;
-                
+            
             default:
                 // Default to Chrome if browser not recognized
                 webDriver = new ChromeDriver();
@@ -154,16 +170,21 @@ public class BaseTest {
      * Annotations: @AfterTest - Executes after each test method
      * 
      * Process:
-     * 1. Closes all browser windows
-     * 2. Releases WebDriver resources
-     * 3. Logs teardown status
-     * 4. Handles any cleanup exceptions
+     * 1. Retrieves driver from ThreadLocal
+     * 2. Closes all browser windows
+     * 3. Releases WebDriver resources
+     * 4. Removes ThreadLocal references
+     * 5. Logs teardown status
+     * 6. Handles any cleanup exceptions
      */
     @AfterTest
     public void tearDown() {
         logger.info("========== Test Teardown Started ==========");
         
         try {
+            // Get driver from ThreadLocal
+            WebDriver driver = driverThreadLocal.get();
+            
             if (driver != null) {
                 // Close all browser windows and end session
                 driver.quit();
@@ -171,17 +192,41 @@ public class BaseTest {
             }
         } catch (Exception e) {
             logger.warning("Error during tearDown: " + e.getMessage());
+        } finally {
+            // Remove ThreadLocal references to prevent memory leaks
+            driverThreadLocal.remove();
+            waitThreadLocal.remove();
+            logger.info("ThreadLocal resources cleaned up");
         }
         
         logger.info("========== Test Teardown Completed ==========");
     }
     
     /**
-     * Get current WebDriver instance
+     * Get current WebDriver instance from ThreadLocal
+     * Thread-safe method for accessing WebDriver in parallel test execution
      * 
-     * Returns: Current WebDriver instance
+     * Returns: Current WebDriver instance for the current thread
      */
     public WebDriver getDriver() {
+        WebDriver driver = driverThreadLocal.get();
+        if (driver == null) {
+            throw new RuntimeException("WebDriver not initialized. Call setUp() first.");
+        }
         return driver;
+    }
+    
+    /**
+     * Get current WebDriverWait instance from ThreadLocal
+     * Thread-safe method for accessing WebDriverWait in parallel test execution
+     * 
+     * Returns: Current WebDriverWait instance for the current thread
+     */
+    public WebDriverWait getWait() {
+        WebDriverWait wait = waitThreadLocal.get();
+        if (wait == null) {
+            throw new RuntimeException("WebDriverWait not initialized. Call setUp() first.");
+        }
+        return wait;
     }
 }
