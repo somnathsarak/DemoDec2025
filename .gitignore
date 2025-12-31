@@ -1,0 +1,125 @@
+# Maven artifacts
+target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Maven build output
+build/
+
+# IDE - IntelliJ IDEA, Eclipse, Visual Studio Code
+.idea/
+*.iml
+*.iws
+*.ipr
+.eclipse/
+.settings/
+.classpath
+.project
+.vscode/
+*.code-workspace
+
+# IDE - NetBeans
+nbproject/
+.nb-gradle/
+
+# IDE - Sublime
+*.sublime-project
+*.sublime-workspace
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+eDesktopDB
+eDesktopSK
+Thumbs.db
+
+# Gradle
+.gradle/
+build/
+
+# Test output and reports
+test-output/
+*.log
+logs/
+reports/
+*.html
+
+# Selenium WebDriver
+*.exe
+*.dll
+driver/
+
+# Jenkins artifacts
+.jenkins/
+artifacts/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node modules (if using npm for frontend testing)
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# Java
+*.class
+*.ctxt
+.mtj.tmp/
+.fuse_hidden*
+.gradle
+.gradletasknamecache
+.nb-gradle/
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Virtual machines
+.vscode-test
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# SonarQube
+.sonarqube/
+
+# JaCoCo coverage reports
+*.exec
+.jacoco/
+
+# Custom project specific ignores
+/debug/
+/screenshots/
+/test-failures/
+*.properties.local
+config.local.properties
