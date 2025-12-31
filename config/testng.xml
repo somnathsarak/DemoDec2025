@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!-- TestNG Suite Configuration for Orange HRM Test Automation Framework -->
+<!-- Updated for Jenkins CI/CD Integration -->
+<suite name="Orange HRM Test Suite" verbose="2" parallel="tests" thread-count="2">
+    <!-- Jenkins Integration Parameters -->
+    <parameter name="reportPath" value="./reports/"/>
+    <parameter name="screenshotPath" value="./reports/screenshots/"/>
+    <parameter name="jenkinsMode" value="true"/>
+    
+    <!-- Test Listeners for Reporting and Logging -->
+    <listeners>
+        <listener class-name="com.automation.listeners.TestListener"/>
+        <listener class-name="com.automation.listeners.ExtentReportListener"/>
+    </listeners>
+    
+    <!-- Test Groups Definition -->
+    <groups>
+        <define name="smoke">
+            <include name="smokeTest"/>
+        </define>
+        <define name="regression">
+            <include name="regressionTest"/>
+        </define>
+        <define name="sanity">
+            <include name="sanityTest"/>
+        </define>
+    </groups>
+    
+    <!-- Test Configuration for Orange HRM Login Tests -->
+    <test name="Orange HRM Login Tests" preserve-order="true">
+        <groups>
+            <run>
+                <include name="smoke"/>
+                <include name="sanity"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.automation.tests.LoginTests"/>
+            <class name="com.automation.tests.DashboardTests"/>
+        </classes>
+    </test>
+    
+    <!-- Additional Test Configuration -->
+    <test name="Orange HRM Employee Tests" preserve-order="true">
+        <groups>
+            <run>
+                <include name="regression"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.automation.tests.EmployeeTests"/>
+        </classes>
+    </test>
+</suite>
